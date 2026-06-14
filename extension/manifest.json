@@ -2,7 +2,8 @@
   "manifest_version": 3,
   "name": "LinkedIn Comment AI",
   "version": "0.4.0",
-  "description": "Generate LinkedIn comment suggestions with your own AI API key (OpenAI, Anthropic, Gemini, Groq).",
+  "description": "Generate LinkedIn comment suggestions with your own AI API key (OpenAI, Anthropic, Gemini, Groq). Created by Hamza Uguz.",
+  "homepage_url": "https://www.linkedin.com/in/hamzauguz",
   "permissions": ["storage", "tabs"],
   "host_permissions": [
     "https://www.linkedin.com/*",
