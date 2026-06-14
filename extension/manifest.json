@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LinkedIn Comment AI",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Generate LinkedIn comment suggestions with your own AI API key (OpenAI, Anthropic, Gemini, Replicate).",
   "permissions": ["storage"],
   "host_permissions": [
@@ -19,13 +19,10 @@
       "128": "icons/icon128.png"
     }
   },
-  "background": {
-    "service_worker": "background/service-worker.js"
-  },
   "content_scripts": [
     {
       "matches": ["https://www.linkedin.com/*"],
-      "js": ["content/content.js"],
+      "js": ["content/generate.js", "content/content.js"],
       "css": ["content/content.css"],
       "run_at": "document_idle"
     }
