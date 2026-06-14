@@ -180,6 +180,26 @@ function renderError(panel, message) {
   body.innerHTML = `<p class="lcai-panel__error">${message}</p>`;
 }
 
+function sendGenerateMessage(payload) {
+  return new Promise((resolve, reject) => {
+    if (!chrome.runtime?.id) {
+      reject(new Error("Extension reloaded. Refresh this LinkedIn page and try again."));
+      return;
+    }
+
+    chrome.runtime.sendMessage(
+      { type: "GENERATE_COMMENTS", payload },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+        resolve(response);
+      }
+    );
+  });
+}
+
 function injectButton(commentBox) {
   if (PROCESSED_EDITORS.has(commentBox)) return;
 
@@ -214,15 +234,7 @@ function injectButton(commentBox) {
     const context = extractPostContext(commentBox);
 
     try {
-      const response = await chrome.runtime.sendMessage({
-        type: "GENERATE_COMMENTS",
-        payload: context,
-      });
-
-      if (chrome.runtime.lastError) {
-        renderError(panel, chrome.runtime.lastError.message);
-        return;
-      }
+      const response = await sendGenerateMessage(context);
 
       if (!response?.ok) {
         renderError(panel, response?.error || "Failed to generate comments.");
