@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
   "name": "LinkedIn Comment AI",
-  "version": "0.3.4",
-  "description": "Generate LinkedIn comment suggestions with your own AI API key (OpenAI, Anthropic, Gemini, Replicate).",
+  "version": "0.4.0",
+  "description": "Generate LinkedIn comment suggestions with your own AI API key (OpenAI, Anthropic, Gemini, Groq).",
   "permissions": ["storage", "tabs"],
   "host_permissions": [
     "https://www.linkedin.com/*",
     "https://api.openai.com/*",
     "https://api.anthropic.com/*",
     "https://generativelanguage.googleapis.com/*",
-    "https://api.replicate.com/*"
+    "https://api.groq.com/*"
   ],
   "action": {
     "default_popup": "popup/popup.html",

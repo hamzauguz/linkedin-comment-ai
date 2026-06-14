@@ -10,12 +10,12 @@
     openai: { label: "OpenAI", defaultModel: "gpt-4o-mini" },
     anthropic: { label: "Anthropic", defaultModel: "claude-3-5-haiku-20241022" },
     gemini: { label: "Gemini", defaultModel: "gemini-2.5-flash" },
-    replicate: { label: "Replicate", defaultModel: "meta/meta-llama-3-8b-instruct" },
+    groq: { label: "Groq", defaultModel: "llama-3.3-70b-versatile" },
   };
 
   const LCAI_DEFAULTS = {
     provider: "openai",
-    apiKeys: { openai: "", anthropic: "", gemini: "", replicate: "" },
+    apiKeys: { openai: "", anthropic: "", gemini: "", groq: "" },
     tone: "professional",
     useEmoji: false,
   };
@@ -172,34 +172,28 @@ Return ONLY a JSON array of 3 strings, no markdown.`;
     throw lastError || new Error("No Gemini model available for your API key.");
   }
 
-  async function lcaiCallReplicate(apiKey, model, prompt) {
-    const response = await lcaiFetchExternal(
-      `https://api.replicate.com/v1/models/${model}/predictions`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-          Prefer: "wait=30",
-        },
-        body: JSON.stringify({
-          input: { prompt, max_tokens: 1024, temperature: 0.8 },
-        }),
-      }
-    );
+  async function lcaiCallGroq(apiKey, model, prompt) {
+    const response = await lcaiFetchExternal("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.8,
+        max_tokens: 1024,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
-      throw new Error(err?.detail || err?.title || `Replicate error (${response.status})`);
+      throw new Error(err?.error?.message || `Groq error (${response.status})`);
     }
 
     const data = await response.json();
-    if (data.status === "succeeded") {
-      const output = Array.isArray(data.output) ? data.output.join("") : data.output;
-      return String(output || "").trim();
-    }
-
-    throw new Error("Replicate is still processing. Try again in a few seconds.");
+    return data.choices?.[0]?.message?.content?.trim();
   }
 
   async function lcaiGetSettings() {
@@ -215,9 +209,15 @@ Return ONLY a JSON array of 3 strings, no markdown.`;
     if (stored.apiKey && !apiKeys.openai) {
       apiKeys.openai = stored.apiKey;
     }
+    if (stored.apiKeys?.replicate && !apiKeys.groq) {
+      apiKeys.groq = stored.apiKeys.replicate;
+    }
+
+    let provider = stored.provider || LCAI_DEFAULTS.provider;
+    if (provider === "replicate") provider = "groq";
 
     return {
-      provider: stored.provider || LCAI_DEFAULTS.provider,
+      provider,
       apiKeys,
       tone: stored.tone || LCAI_DEFAULTS.tone,
       useEmoji: Boolean(stored.useEmoji),
@@ -262,8 +262,8 @@ Return ONLY a JSON array of 3 strings, no markdown.`;
         case "gemini":
           raw = await lcaiCallGemini(apiKey, config.defaultModel, prompt);
           break;
-        case "replicate":
-          raw = await lcaiCallReplicate(apiKey, config.defaultModel, prompt);
+        case "groq":
+          raw = await lcaiCallGroq(apiKey, config.defaultModel, prompt);
           break;
         default:
           raw = await lcaiCallOpenAI(apiKey, config.defaultModel, prompt);

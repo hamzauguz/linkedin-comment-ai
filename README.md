@@ -17,7 +17,7 @@ Free Chrome extension that generates LinkedIn comment suggestions using your own
 | OpenAI | gpt-4o-mini |
 | Anthropic | claude-3-5-haiku-latest |
 | Gemini | gemini-2.0-flash |
-| Replicate | meta/meta-llama-3-8b-instruct |
+| Groq | llama-3.3-70b-versatile |
 
 ## Branch strategy
 
@@ -29,7 +29,7 @@ Free Chrome extension that generates LinkedIn comment suggestions using your own
 | `feature/linkedin-content-script` | LinkedIn DOM injection |
 | `feature/comment-generation` | OpenAI integration & suggestion UI |
 | `feature/fix-linkedin-dom` | Robust post content extraction for 2026 LinkedIn DOM |
-| `feature/multi-provider-settings` | Provider picker UI + OpenAI/Anthropic/Gemini/Replicate router |
+| `feature/multi-provider-settings` | Provider picker UI + OpenAI/Anthropic/Gemini/Groq router |
 
 ## Setup (local dev)
 

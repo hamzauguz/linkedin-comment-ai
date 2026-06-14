@@ -145,8 +145,8 @@ main {
   background: #4285f4;
 }
 
-.provider-card__icon--replicate {
-  background: #111827;
+.provider-card__icon--groq {
+  background: #f55036;
 }
 
 .provider-card__name {

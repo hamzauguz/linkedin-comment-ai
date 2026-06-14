@@ -6,7 +6,7 @@
   }
   window.__LCAI_CONTENT__ = true;
 
-  const LCAI_VERSION = "0.3.4";
+  const LCAI_VERSION = "0.4.0";
   const BUTTON_CLASS = "lcai-generate-btn";
   const PANEL_CLASS = "lcai-panel";
   const PROCESSED_EDITORS = new WeakSet();

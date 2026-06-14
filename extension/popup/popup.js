@@ -14,10 +14,10 @@ const PROVIDER_CONFIG = {
     placeholder: "AI...",
     keyUrl: "https://aistudio.google.com/apikey",
   },
-  replicate: {
-    label: "Replicate API Token",
-    placeholder: "r8_...",
-    keyUrl: "https://replicate.com/account/api-tokens",
+  groq: {
+    label: "Groq API Key",
+    placeholder: "gsk_...",
+    keyUrl: "https://console.groq.com/keys",
   },
 };
 
@@ -27,7 +27,7 @@ const DEFAULTS = {
     openai: "",
     anthropic: "",
     gemini: "",
-    replicate: "",
+    groq: "",
   },
   tone: "professional",
   useEmoji: false,
@@ -95,7 +95,8 @@ async function loadSettings() {
     apiKeys.openai = stored.apiKey;
   }
 
-  const provider = stored.provider || DEFAULTS.provider;
+  let provider = stored.provider || DEFAULTS.provider;
+  if (provider === "replicate") provider = "groq";
   providerInputs.forEach((input) => {
     input.checked = input.value === provider;
   });
