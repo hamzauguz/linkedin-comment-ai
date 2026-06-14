@@ -9,7 +9,7 @@
   const LCAI_PROVIDERS = {
     openai: { label: "OpenAI", defaultModel: "gpt-4o-mini" },
     anthropic: { label: "Anthropic", defaultModel: "claude-3-5-haiku-20241022" },
-    gemini: { label: "Gemini", defaultModel: "gemini-1.5-flash" },
+    gemini: { label: "Gemini", defaultModel: "gemini-2.5-flash" },
     replicate: { label: "Replicate", defaultModel: "meta/meta-llama-3-8b-instruct" },
   };
 
@@ -126,7 +126,13 @@ Return ONLY a JSON array of 3 strings, no markdown.`;
     return data.content?.map((block) => block.text).join("").trim();
   }
 
-  async function lcaiCallGemini(apiKey, model, prompt) {
+  const LCAI_GEMINI_MODELS = [
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-3.5-flash",
+  ];
+
+  async function lcaiCallGeminiOnce(apiKey, model, prompt) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
     const response = await lcaiFetchExternal(url, {
       method: "POST",
@@ -139,11 +145,31 @@ Return ONLY a JSON array of 3 strings, no markdown.`;
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
-      throw new Error(err?.error?.message || `Gemini error (${response.status})`);
+      const message = err?.error?.message || `Gemini error (${response.status})`;
+      const retryable = response.status === 404 || /not found|not supported/i.test(message);
+      const error = new Error(message);
+      error.retryable = retryable;
+      throw error;
     }
 
     const data = await response.json();
     return data.candidates?.[0]?.content?.parts?.map((part) => part.text).join("").trim();
+  }
+
+  async function lcaiCallGemini(apiKey, model, prompt) {
+    const models = [model, ...LCAI_GEMINI_MODELS.filter((m) => m !== model)];
+    let lastError;
+
+    for (const candidate of models) {
+      try {
+        return await lcaiCallGeminiOnce(apiKey, candidate, prompt);
+      } catch (error) {
+        lastError = error;
+        if (!error.retryable) throw error;
+      }
+    }
+
+    throw lastError || new Error("No Gemini model available for your API key.");
   }
 
   async function lcaiCallReplicate(apiKey, model, prompt) {
