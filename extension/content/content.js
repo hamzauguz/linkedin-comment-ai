@@ -17,13 +17,94 @@ function findCommentBoxes() {
   return [...boxes];
 }
 
+const POST_CONTAINER_SELECTORS = [
+  '[data-view-name="feed-full-update"]',
+  ".feed-shared-update-v2",
+  ".occludable-update",
+  'div[data-id^="urn:li:activity"]',
+  'div[data-urn^="urn:li:activity"]',
+  'div[data-urn^="urn:li:aggregatedShare"]',
+  'article[data-urn*="activity"]',
+  "article",
+];
+
+const AUTHOR_SELECTORS = [
+  '[data-view-name="feed-header-actor"] a[href*="/in/"] span',
+  '[data-view-name="feed-actor-image"] + a span',
+  ".update-components-actor__title span[aria-hidden='true']",
+  ".update-components-actor__title a span",
+  ".update-components-actor__name",
+  ".feed-shared-actor__name span",
+  ".feed-shared-actor__title span",
+  '[data-anonymize="person-name"]',
+  'a[href*="/in/"] span[dir="ltr"]',
+];
+
+const POST_TEXT_SELECTORS = [
+  '[data-testid="expandable-text-box"]',
+  '[data-view-name="feed-commentary"]',
+  ".update-components-update-v2__commentary",
+  ".feed-shared-update-v2__description .update-components-text",
+  ".feed-shared-inline-show-more-text",
+  ".feed-shared-text .update-components-text",
+  ".feed-shared-text",
+  ".update-components-text",
+  ".break-words",
+];
+
+function queryFirst(root, selectors) {
+  for (const selector of selectors) {
+    const el = root.querySelector(selector);
+    if (el?.textContent?.trim()) return el;
+  }
+  return null;
+}
+
+function normalizeText(text) {
+  return text.replace(/\s+/g, " ").trim();
+}
+
 function findPostContainer(commentBox) {
-  return (
-    commentBox.closest(".feed-shared-update-v2") ||
-    commentBox.closest("article") ||
-    commentBox.closest(".comments-comment-box")?.closest(".feed-shared-update-v2") ||
-    commentBox.closest('[data-urn*="activity"]')
-  );
+  for (const selector of POST_CONTAINER_SELECTORS) {
+    const match = commentBox.closest(selector);
+    if (match) return match;
+  }
+
+  for (const post of document.querySelectorAll(POST_CONTAINER_SELECTORS.join(", "))) {
+    if (post.contains(commentBox)) return post;
+  }
+
+  let node = commentBox.parentElement;
+  for (let depth = 0; depth < 20 && node; depth += 1) {
+    if (queryFirst(node, POST_TEXT_SELECTORS)) return node;
+    node = node.parentElement;
+  }
+
+  return null;
+}
+
+function extractAuthorName(container) {
+  const authorEl = queryFirst(container, AUTHOR_SELECTORS);
+  if (authorEl) return normalizeText(authorEl.textContent);
+
+  const profileLink = container.querySelector('a[href*="/in/"]:not([href*="/company/"])');
+  const linkText = profileLink?.textContent?.split("\n")[0];
+  return linkText ? normalizeText(linkText) : "";
+}
+
+function extractPostText(container) {
+  const textEl = queryFirst(container, POST_TEXT_SELECTORS);
+  if (textEl) return normalizeText(textEl.textContent);
+
+  const clone = container.cloneNode(true);
+  clone
+    .querySelectorAll(
+      ".comments-comments-list, .comments-comment-box, .comments-replies-list, .feed-shared-social-action-bar, .social-details-social-counts, button, svg"
+    )
+    .forEach((el) => el.remove());
+
+  const fallback = normalizeText(clone.textContent || "");
+  return fallback.slice(0, 2500);
 }
 
 function extractPostContext(commentBox) {
@@ -32,20 +113,10 @@ function extractPostContext(commentBox) {
     return { authorName: "", postText: "" };
   }
 
-  const authorEl =
-    container.querySelector(".update-components-actor__title span") ||
-    container.querySelector(".feed-shared-actor__name") ||
-    container.querySelector('[data-anonymize="person-name"]');
-
-  const textEl =
-    container.querySelector(".feed-shared-update-v2__description") ||
-    container.querySelector(".feed-shared-text") ||
-    container.querySelector(".update-components-text");
-
-  const authorName = authorEl?.textContent?.trim().replace(/\s+/g, " ") || "";
-  const postText = textEl?.textContent?.trim().replace(/\s+/g, " ") || "";
-
-  return { authorName, postText };
+  return {
+    authorName: extractAuthorName(container),
+    postText: extractPostText(container),
+  };
 }
 
 function insertTextIntoEditor(editor, text) {
