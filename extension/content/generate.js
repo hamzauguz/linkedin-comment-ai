@@ -3,7 +3,6 @@
 
   if (window.__LCAI_GENERATE__) {
     window.dispatchEvent(new CustomEvent("lcai:cleanup"));
-    return;
   }
   window.__LCAI_GENERATE__ = true;
 

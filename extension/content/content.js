@@ -3,11 +3,10 @@
 
   if (window.__LCAI_CONTENT__) {
     window.dispatchEvent(new CustomEvent("lcai:cleanup"));
-    return;
   }
   window.__LCAI_CONTENT__ = true;
 
-  const LCAI_VERSION = "0.3.2";
+  const LCAI_VERSION = "0.3.3";
   const BUTTON_CLASS = "lcai-generate-btn";
   const PANEL_CLASS = "lcai-panel";
   const PROCESSED_EDITORS = new WeakSet();
@@ -264,17 +263,8 @@
     });
   }
 
-  domObserver = new MutationObserver((mutations) => {
-    const hasRelevantChange = mutations.some((mutation) =>
-      [...mutation.addedNodes].some(
-        (node) =>
-          node.nodeType === Node.ELEMENT_NODE &&
-          (node.matches?.(".comments-comment-box__form, .comments-comment-texteditor, .ql-editor") ||
-            node.querySelector?.(".comments-comment-box__form, .comments-comment-texteditor, .ql-editor"))
-      )
-    );
-
-    if (hasRelevantChange) scheduleScan();
+  domObserver = new MutationObserver(() => {
+    scheduleScan();
   });
 
   domObserver.observe(document.body, { childList: true, subtree: true });
