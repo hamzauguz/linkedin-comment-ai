@@ -41,6 +41,8 @@ async function getSettings() {
   };
 }
 
+const inflightRequests = new Set();
+
 async function generateComments(context) {
   const settings = await getSettings();
   const provider = settings.provider || "openai";
@@ -70,9 +72,22 @@ async function generateComments(context) {
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type !== "GENERATE_COMMENTS") return;
 
+  const requestKey = JSON.stringify({
+    author: message.payload?.authorName || "",
+    text: (message.payload?.postText || "").slice(0, 120),
+  });
+
+  if (inflightRequests.has(requestKey)) {
+    sendResponse({ ok: false, error: "Generation already in progress. Please wait." });
+    return;
+  }
+
+  inflightRequests.add(requestKey);
+
   generateComments(message.payload)
     .then((suggestions) => sendResponse({ ok: true, suggestions }))
-    .catch((error) => sendResponse({ ok: false, error: error.message }));
+    .catch((error) => sendResponse({ ok: false, error: error.message }))
+    .finally(() => inflightRequests.delete(requestKey));
 
   return true;
 });

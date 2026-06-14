@@ -9,13 +9,13 @@ const PROVIDERS = {
     label: "Anthropic",
     keyUrl: "https://console.anthropic.com/settings/keys",
     keyPlaceholder: "sk-ant-...",
-    defaultModel: "claude-3-5-haiku-latest",
+    defaultModel: "claude-3-5-haiku-20241022",
   },
   gemini: {
     label: "Gemini",
     keyUrl: "https://aistudio.google.com/apikey",
     keyPlaceholder: "AI...",
-    defaultModel: "gemini-2.0-flash",
+    defaultModel: "gemini-1.5-flash",
   },
   replicate: {
     label: "Replicate",
@@ -135,14 +135,25 @@ async function callGemini(apiKey, model, prompt) {
   return data.candidates?.[0]?.content?.parts?.map((part) => part.text).join("").trim();
 }
 
-async function pollReplicatePrediction(apiKey, predictionUrl, maxAttempts = 30) {
+function normalizeReplicateUrl(url) {
+  if (!url || typeof url !== "string") return null;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return `https://api.replicate.com${url.startsWith("/") ? url : `/${url}`}`;
+}
+
+async function pollReplicatePrediction(apiKey, predictionUrl, maxAttempts = 20) {
+  const pollUrl = normalizeReplicateUrl(predictionUrl);
+  if (!pollUrl || !pollUrl.includes("api.replicate.com")) {
+    throw new Error("Invalid Replicate polling URL.");
+  }
+
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-    const response = await fetch(predictionUrl, {
+    const response = await fetch(pollUrl, {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
 
     if (!response.ok) {
-      throw new Error(`Replicate polling error (${response.status})`);
+      throw new Error(`Replicate polling error (${response.status}). Check your API token.`);
     }
 
     const data = await response.json();
@@ -190,7 +201,7 @@ async function callReplicate(apiKey, model, prompt) {
   }
 
   if (data.urls?.get) {
-    return pollReplicatePrediction(apiKey, data.urls.get);
+    return pollReplicatePrediction(apiKey, normalizeReplicateUrl(data.urls.get));
   }
 
   throw new Error("Unexpected Replicate response.");

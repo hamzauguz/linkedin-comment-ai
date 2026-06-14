@@ -1,6 +1,7 @@
 const BUTTON_CLASS = "lcai-generate-btn";
 const PANEL_CLASS = "lcai-panel";
-const PROCESSED_ATTR = "data-lcai-processed";
+const PROCESSED_EDITORS = new WeakSet();
+let scanScheduled = false;
 
 function findCommentBoxes() {
   const selectors = [
@@ -180,7 +181,7 @@ function renderError(panel, message) {
 }
 
 function injectButton(commentBox) {
-  if (commentBox.closest(`[${PROCESSED_ATTR}]`)) return;
+  if (PROCESSED_EDITORS.has(commentBox)) return;
 
   const wrapper =
     commentBox.closest(".comments-comment-box__form") ||
@@ -189,7 +190,7 @@ function injectButton(commentBox) {
 
   if (!wrapper) return;
 
-  wrapper.setAttribute(PROCESSED_ATTR, "true");
+  PROCESSED_EDITORS.add(commentBox);
 
   const toolbar = document.createElement("div");
   toolbar.className = "lcai-toolbar";
@@ -199,8 +200,16 @@ function injectButton(commentBox) {
   button.className = BUTTON_CLASS;
   button.textContent = "✨ Generate";
 
-  button.addEventListener("click", async () => {
+  let isGenerating = false;
+
+  button.addEventListener("click", async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (isGenerating) return;
+    isGenerating = true;
     button.disabled = true;
+
     const panel = createPanel(toolbar, commentBox);
     const context = extractPostContext(commentBox);
 
@@ -210,15 +219,21 @@ function injectButton(commentBox) {
         payload: context,
       });
 
+      if (chrome.runtime.lastError) {
+        renderError(panel, chrome.runtime.lastError.message);
+        return;
+      }
+
       if (!response?.ok) {
         renderError(panel, response?.error || "Failed to generate comments.");
         return;
       }
 
       renderSuggestions(panel, response.suggestions, commentBox);
-    } catch {
-      renderError(panel, "Extension error. Try reloading the page.");
+    } catch (error) {
+      renderError(panel, error?.message || "Extension error. Try reloading the page.");
     } finally {
+      isGenerating = false;
       button.disabled = false;
     }
   });
@@ -231,9 +246,27 @@ function scanAndInject() {
   findCommentBoxes().forEach(injectButton);
 }
 
-const observer = new MutationObserver(() => {
-  scanAndInject();
+function scheduleScan() {
+  if (scanScheduled) return;
+  scanScheduled = true;
+  requestAnimationFrame(() => {
+    scanScheduled = false;
+    scanAndInject();
+  });
+}
+
+const observer = new MutationObserver((mutations) => {
+  const hasRelevantChange = mutations.some((mutation) =>
+    [...mutation.addedNodes].some(
+      (node) =>
+        node.nodeType === Node.ELEMENT_NODE &&
+        (node.matches?.(".comments-comment-box__form, .comments-comment-texteditor, .ql-editor") ||
+          node.querySelector?.(".comments-comment-box__form, .comments-comment-texteditor, .ql-editor"))
+    )
+  );
+
+  if (hasRelevantChange) scheduleScan();
 });
 
 observer.observe(document.body, { childList: true, subtree: true });
-scanAndInject();
+scheduleScan();
