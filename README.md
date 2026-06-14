@@ -20,9 +20,19 @@ Free Chrome extension that generates LinkedIn comment suggestions using your own
 | `feature/linkedin-content-script` | LinkedIn DOM injection |
 | `feature/comment-generation` | OpenAI integration & suggestion UI |
 
+## Push to GitHub
+
+```bash
+gh auth login
+chmod +x scripts/push-to-github.sh
+./scripts/push-to-github.sh
+```
+
+This creates a public repo and pushes all feature branches.
+
 ## Setup (local dev)
 
-1. Clone the repo and checkout the latest feature branch (or `main` after merge).
+1. Clone the repo and checkout `feature/comment-generation` for the full MVP.
 2. Open Chrome → `chrome://extensions`
 3. Enable **Developer mode**
 4. Click **Load unpacked** → select the `extension/` folder
@@ -38,3 +48,4 @@ Free Chrome extension that generates LinkedIn comment suggestions using your own
 ## License
 
 MIT
+# linkedin-comment-ai
