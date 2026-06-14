@@ -7,46 +7,122 @@
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
-    <header>
+    <header class="hero">
+      <div class="hero__badge">Free · BYOK · English</div>
       <h1>LinkedIn Comment AI</h1>
-      <p class="subtitle">Free · Your API key · English comments</p>
+      <p class="hero__subtitle">Pick your AI provider, save your key, generate on LinkedIn.</p>
     </header>
 
-    <form id="settings-form">
-      <label for="api-key">OpenAI API Key</label>
-      <input
-        type="password"
-        id="api-key"
-        placeholder="sk-..."
-        autocomplete="off"
-      />
-      <p class="hint">
-        Stored locally in Chrome. Get a key at
-        <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener"
-          >platform.openai.com</a
-        >.
-      </p>
+    <main>
+      <form id="settings-form">
+        <section class="card">
+          <div class="section-head">
+            <h2>AI Provider</h2>
+            <span class="section-head__hint">Bring your own key</span>
+          </div>
 
-      <label for="tone">Default tone</label>
-      <select id="tone">
-        <option value="professional">Professional</option>
-        <option value="friendly">Friendly</option>
-        <option value="thoughtful">Thoughtful</option>
-        <option value="enthusiastic">Enthusiastic</option>
-      </select>
+          <div class="provider-grid" role="radiogroup" aria-label="AI provider">
+            <label class="provider-card">
+              <input type="radio" name="provider" value="openai" checked />
+              <span class="provider-card__icon provider-card__icon--openai">O</span>
+              <span class="provider-card__name">OpenAI</span>
+              <span class="provider-card__model">GPT-4o mini</span>
+            </label>
+            <label class="provider-card">
+              <input type="radio" name="provider" value="anthropic" />
+              <span class="provider-card__icon provider-card__icon--anthropic">A</span>
+              <span class="provider-card__name">Anthropic</span>
+              <span class="provider-card__model">Claude Haiku</span>
+            </label>
+            <label class="provider-card">
+              <input type="radio" name="provider" value="gemini" />
+              <span class="provider-card__icon provider-card__icon--gemini">G</span>
+              <span class="provider-card__name">Gemini</span>
+              <span class="provider-card__model">2.0 Flash</span>
+            </label>
+            <label class="provider-card">
+              <input type="radio" name="provider" value="replicate" />
+              <span class="provider-card__icon provider-card__icon--replicate">R</span>
+              <span class="provider-card__name">Replicate</span>
+              <span class="provider-card__model">Llama 3 8B</span>
+            </label>
+          </div>
+        </section>
 
-      <label class="checkbox-row">
-        <input type="checkbox" id="use-emoji" />
-        Include emojis
-      </label>
+        <section class="card">
+          <div class="section-head">
+            <h2>API Key</h2>
+            <span id="key-status" class="key-status key-status--empty">Not set</span>
+          </div>
 
-      <button type="submit" id="save-btn">Save settings</button>
-    </form>
+          <div class="field">
+            <label for="api-key" id="api-key-label">OpenAI API Key</label>
+            <div class="input-wrap">
+              <input
+                type="password"
+                id="api-key"
+                placeholder="sk-..."
+                autocomplete="off"
+              />
+              <button type="button" id="toggle-key" class="icon-btn" aria-label="Show API key">
+                Show
+              </button>
+            </div>
+            <p class="hint">
+              Stored locally in Chrome only.
+              <a id="key-link" href="https://platform.openai.com/api-keys" target="_blank" rel="noopener"
+                >Get key →</a
+              >
+            </p>
+          </div>
+        </section>
 
-    <p id="status" class="status" role="status" aria-live="polite"></p>
+        <section class="card">
+          <div class="section-head">
+            <h2>Comment style</h2>
+          </div>
+
+          <div class="field">
+            <span class="field-label">Default tone</span>
+            <div class="tone-grid" role="radiogroup" aria-label="Default tone">
+              <label class="tone-pill">
+                <input type="radio" name="tone" value="professional" checked />
+                <span>Professional</span>
+              </label>
+              <label class="tone-pill">
+                <input type="radio" name="tone" value="friendly" />
+                <span>Friendly</span>
+              </label>
+              <label class="tone-pill">
+                <input type="radio" name="tone" value="thoughtful" />
+                <span>Thoughtful</span>
+              </label>
+              <label class="tone-pill">
+                <input type="radio" name="tone" value="enthusiastic" />
+                <span>Enthusiastic</span>
+              </label>
+            </div>
+          </div>
+
+          <label class="switch-row">
+            <span>Include emojis</span>
+            <span class="switch">
+              <input type="checkbox" id="use-emoji" />
+              <span class="switch__slider"></span>
+            </span>
+          </label>
+        </section>
+
+        <button type="submit" id="save-btn">Save settings</button>
+      </form>
+
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </main>
 
     <footer>
-      <p>Open LinkedIn feed → click <strong>Generate</strong> on any comment box.</p>
+      <p>
+        Open <strong>linkedin.com/feed</strong> → click <strong>✨ Generate</strong> on any comment box.
+      </p>
     </footer>
 
     <script src="popup.js"></script>
