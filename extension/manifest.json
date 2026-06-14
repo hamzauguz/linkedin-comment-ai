@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "description": "Generate LinkedIn comment suggestions with your own OpenAI API key.",
   "permissions": ["storage"],
+  "host_permissions": ["https://www.linkedin.com/*"],
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
@@ -12,6 +13,14 @@
       "128": "icons/icon128.png"
     }
   },
+  "content_scripts": [
+    {
+      "matches": ["https://www.linkedin.com/*"],
+      "js": ["content/content.js"],
+      "css": ["content/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
