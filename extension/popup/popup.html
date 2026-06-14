@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LinkedIn Comment AI</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>LinkedIn Comment AI</h1>
+      <p class="subtitle">Free · Your API key · English comments</p>
+    </header>
+
+    <form id="settings-form">
+      <label for="api-key">OpenAI API Key</label>
+      <input
+        type="password"
+        id="api-key"
+        placeholder="sk-..."
+        autocomplete="off"
+      />
+      <p class="hint">
+        Stored locally in Chrome. Get a key at
+        <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener"
+          >platform.openai.com</a
+        >.
+      </p>
+
+      <label for="tone">Default tone</label>
+      <select id="tone">
+        <option value="professional">Professional</option>
+        <option value="friendly">Friendly</option>
+        <option value="thoughtful">Thoughtful</option>
+        <option value="enthusiastic">Enthusiastic</option>
+      </select>
+
+      <label class="checkbox-row">
+        <input type="checkbox" id="use-emoji" />
+        Include emojis
+      </label>
+
+      <button type="submit" id="save-btn">Save settings</button>
+    </form>
+
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+
+    <footer>
+      <p>Open LinkedIn feed → click <strong>Generate</strong> on any comment box.</p>
+    </footer>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
