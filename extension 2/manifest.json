@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "LinkedIn Comment AI",
+  "version": "0.4.0",
+  "description": "Generate LinkedIn comment suggestions with your own AI API key (OpenAI, Anthropic, Gemini, Groq). Created by Hamza Uguz.",
+  "homepage_url": "https://www.linkedin.com/in/hamzauguz",
+  "permissions": ["storage", "tabs"],
+  "host_permissions": [
+    "https://www.linkedin.com/*",
+    "https://api.openai.com/*",
+    "https://api.anthropic.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.groq.com/*"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background/bootstrap.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.linkedin.com/*"],
+      "js": ["content/generate.js", "content/content.js"],
+      "css": ["content/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
